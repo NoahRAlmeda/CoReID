@@ -71,6 +71,5 @@ def checkIn():
         print('Checked In')
         addEntry(n, i, t, d)
 
-
 while True:
     checkIn()
