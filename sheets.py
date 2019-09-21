@@ -1,8 +1,11 @@
 # TODO
 # - Comment code
 # - Fix Bug: Token expires every hour
+# - Fix Error: When a ID is not found it crashes
+# - Create function that lets me add user info to new card Ids
+# - Create Readme file
+# - Come up with a solution in case if the student doesn't check out what will the program do
 # -
-
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -15,21 +18,22 @@ import seaborn as sns
 
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/spreadsheets','https://www.googleapis.com/auth/drive.file','https://www.googleapis.com/auth/drive']
 creds = ServiceAccountCredentials.from_json_keyfile_name('creds.json', scope)
-
-def refreshToken():
-    try:
-        client = gspread.authorize(creds)
-        sheet = client.open('CoReLabCheckInList').sheet1
-        if creds.access_token_expired:
-            gs_client.login()
-    except Exception:
-        traceback.print_exc()
-
-# ser = serial.Serial('/dev/cu.usbmodem141201', 9600)  # open serial port
+global client
+client = gspread.authorize(creds)
+global sheet
+sheet = client.open('CoReLabCheckInList').sheet1
+ser = serial.Serial('/dev/cu.usbmodem141401', 9600)  # open serial port
 
 file = 'Book1.csv'
 df = pd.read_csv(file)
 
+def refreshToken():
+    try:
+        if creds.access_token_expired:
+            print("Token Refreshed!")
+            gs_client.login()
+    except Exception:
+        traceback.print_exc()
 
 def scanCard():
     global ser
@@ -47,7 +51,7 @@ def findCell(n, i, t, d):
 
 def addEntry(n, i, t, d):
     sheet.insert_row([n, i, t, d, '', 'False'], 2)
-    print('Checked In')
+    print('Add Entry')
 
 def getRowValue(row):
     return sheet.row_values(row)
@@ -72,11 +76,13 @@ def checkIn():
     print(values_list)
 
     if not can_read and (values_list[5] == 'False'):
-        print('Not checked out')
+        print('Cheking Out...')
         checkOut(cell)
     else:
-        print('Checked In')
-        addEntry(n, i, t, d
+        if can_read:
+            print('Checked In Already')
+        else:
+            addEntry(n, i, t, d)
 
 # def checkActivity(studentID):
 #     listOflist = sheet.get_all_values()
